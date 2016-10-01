@@ -216,22 +216,22 @@ MainWindow::createGroupPanel()
 	// init timing label
 	m_labelTime = new QLabel;
 
-        // create histogram plot
-        m_histogram = new QCustomPlot;
-
-	// set histogram title
-        m_histogram->plotLayout()->insertRow(0);
-        m_histogram->plotLayout()->addElement(0, 0, new QCPPlotTitle(m_histogram,"Histogram"));
-
-        // assign label axes
-        m_histogram->xAxis->setLabel("Intensity");
-        m_histogram->yAxis->setLabel("Frequency");
-        m_histogram->xAxis->setAutoTickStep(0);
-        m_histogram->xAxis->setTickStep(32.);
-
-        // set axes ranges, so we see all the data
-        m_histogram->xAxis->setRange(0, MXGRAY);
-        m_histogram->yAxis->setRange(0, MXGRAY);
+    // create histogram plot
+    m_histogram = new QCustomPlot;
+    
+    // set histogram title
+    m_histogram->plotLayout()->insertRow(0);
+    m_histogram->plotLayout()->addElement(0, 0, new QCPPlotTitle(m_histogram,"Histogram"));
+    
+    // assign label axes
+    m_histogram->xAxis->setLabel("Intensity");
+    m_histogram->yAxis->setLabel("Frequency");
+    m_histogram->xAxis->setAutoTickStep(0);
+    m_histogram->xAxis->setTickStep(32.);
+    
+    // set axes ranges, so we see all the data
+    m_histogram->xAxis->setRange(0, MXGRAY);
+    m_histogram->yAxis->setRange(0, MXGRAY);
 	m_histogram->setMinimumHeight(400);
 	m_histogram->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
 	m_histogram->axisRect()->setupFullAxesBox();
