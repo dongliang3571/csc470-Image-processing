@@ -1,1 +1,0 @@
-# csc470-Image-processing
