@@ -39,6 +39,7 @@ HW_errDiffusion(ImagePtr I1, int method, bool serpentine, double gamma, ImagePtr
 
     gammaCorrect(I1, gamma, tempImage);
 
+    // if method is Floyd-Steinberg
     if(method == 0) {
         short* in1;
         short* in2;
@@ -50,11 +51,15 @@ HW_errDiffusion(ImagePtr I1, int method, bool serpentine, double gamma, ImagePtr
 
         for(ch = 0; IP_getChannel(tempImage, ch, p1, type); ch++) {
             IP_getChannel(I2, ch, p2, type);
+
+            // Copy the first row into buffer
             bufferUp[0] = *p1;
             bufferUp[bufferSize-1] = *(p1+w-1);
             for (i = 1; i < bufferSize-1; i++) {
                 bufferUp[i] = *p1++;
             }
+
+            // Copy rest of the rows one at a time depending on row number
             for(y = 1; y < h; y++) {
                 if (y%2 == 0) {
                     bufferUp[0] = *p1;
@@ -110,6 +115,7 @@ HW_errDiffusion(ImagePtr I1, int method, bool serpentine, double gamma, ImagePtr
                     }
                 // When serpentine is off
                 } else {
+                    // depending on row number, we use two pointers to point to each buffer
                     if (y%2 == 0) {
                         in2 = bufferUp   + 1;
                         in1 = bufferDown + 1;
@@ -133,6 +139,8 @@ HW_errDiffusion(ImagePtr I1, int method, bool serpentine, double gamma, ImagePtr
         }
         delete [] bufferUp;
         delete [] bufferDown;
+
+    // if method is Jarvis-Judice-Ninke
     } else if(method == 1) {
         bufferSize = w+4;
         short** in = new short*[3];
@@ -202,6 +210,8 @@ HW_errDiffusion(ImagePtr I1, int method, bool serpentine, double gamma, ImagePtr
                     if (y%2 == 0) {
                         // Move output pointer to the last element of the row
                         p2 = p2 + w - 1;
+
+                        // depending on row number, we use three pointers to point to each buffer
                         if(y == 2) {
                             in[0] = buffer[0] + bufferSize - 3;
                             in[1] = buffer[1] + bufferSize - 3;
@@ -243,6 +253,7 @@ HW_errDiffusion(ImagePtr I1, int method, bool serpentine, double gamma, ImagePtr
                     // otherwise we scan the row from left to right
                     // Odd row number
                     } else {
+                        // depending on row number, we use three pointers to point to each buffer
                         if(y == 2) {
                             in[0] = buffer[0] + 2;
                             in[1] = buffer[1] + 2;
@@ -281,6 +292,7 @@ HW_errDiffusion(ImagePtr I1, int method, bool serpentine, double gamma, ImagePtr
                     }
                 // When serpentine is off
                 } else {
+                    // depending on row number, we use three pointers to point to each buffer
                     if(y == 2) {
                         in[0] = buffer[0] + 2;
                         in[1] = buffer[1] + 2;
@@ -323,6 +335,8 @@ HW_errDiffusion(ImagePtr I1, int method, bool serpentine, double gamma, ImagePtr
             delete[] buffer[i];
         }
         delete[] buffer;
+
+    // neither of the choices, just copy input into output
     } else {
         for(int ch = 0; IP_getChannel(tempImage, ch, p1, type); ch++) {
             IP_getChannel(I2, ch, p2, type);
