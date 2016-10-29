@@ -34,7 +34,7 @@ HW_errDiffusion(ImagePtr I1, int method, bool serpentine, double gamma, ImagePtr
     int w = I1->width();
     int h = I1->height();
     int total = w * h;
-    int type, y, x, ch, bufferSize, i;
+    int type, y, x, ch, bufferSize, i, j;
     ChannelPtr<uchar> p1, p2, endd;
 
     gammaCorrect(I1, gamma, tempImage);
@@ -70,8 +70,11 @@ HW_errDiffusion(ImagePtr I1, int method, bool serpentine, double gamma, ImagePtr
                     }
                 }
 
+                // Check if serpentine is on
                 if(serpentine) {
+                    // if serpentine is on and it's even row we scan the row from right to left
                     if (y%2 == 0) {
+                        // Move output pointer to the last element of the row
                         p2 = p2 + w - 1;
                         in2 = bufferUp   + bufferSize - 2;
                         in1 = bufferDown + bufferSize - 2;
@@ -86,7 +89,10 @@ HW_errDiffusion(ImagePtr I1, int method, bool serpentine, double gamma, ImagePtr
                             in2--;
                             p2--;
                         }
+                        // Move output pointer to the first element of next row
                         p2 = p2 + w + 1;
+
+                    // otherwise we scan the row from left to right
                     } else {
                         in1 = bufferUp   + 1;
                         in2 = bufferDown + 1;
@@ -102,6 +108,7 @@ HW_errDiffusion(ImagePtr I1, int method, bool serpentine, double gamma, ImagePtr
                             p2++;
                         }
                     }
+                // When serpentine is off
                 } else {
                     if (y%2 == 0) {
                         in2 = bufferUp   + 1;
@@ -127,7 +134,195 @@ HW_errDiffusion(ImagePtr I1, int method, bool serpentine, double gamma, ImagePtr
         delete [] bufferUp;
         delete [] bufferDown;
     } else if(method == 1) {
+        bufferSize = w+4;
+        short** in = new short*[3];
+        int thr = MXGRAY/2;
+        int error;
+        short** buffer = new short*[3];
 
+        for(int i = 0; i < 3; i++) {
+            buffer[i] = new short[bufferSize];
+        }
+
+        for(ch = 0; IP_getChannel(tempImage, ch, p1, type); ch++) {
+            IP_getChannel(I2, ch, p2, type);
+            int restLen = bufferSize - 2;
+
+            // Copy first two rows into buffer
+            for (i = 0; i < 2; i++) {
+                buffer[i][0] = *p1;
+                buffer[i][1] = *p1;
+                buffer[i][bufferSize-1] = *(p1+w-1);
+                buffer[i][bufferSize-2] = *(p1+w-1);
+                for (j = 2; j < restLen; j++) {
+                    buffer[i][j] = *p1++;
+                }
+            }
+
+            // depending on row number, we start copying a row into buffer one at a time
+            for(y = 2; y < h; y++) {
+                if(y == 2) {
+                    buffer[2][0] = *p1;
+                    buffer[2][1] = *p1;
+                    buffer[2][bufferSize-1] = *(p1+w-1);
+                    buffer[2][bufferSize-2] = *(p1+w-1);
+                    for (i = 2; i < restLen; i++) {
+                        buffer[2][i] = *p1++;
+                    }
+                } else if (y%3 == 0) {
+                    buffer[0][0] = *p1;
+                    buffer[0][1] = *p1;
+                    buffer[0][bufferSize-1] = *(p1+w-1);
+                    buffer[0][bufferSize-2] = *(p1+w-1);
+                    for (i = 2; i < restLen; i++) {
+                        buffer[0][i] = *p1++;
+                    }
+                } else if(y%3 == 1) {
+                    buffer[1][0] = *p1;
+                    buffer[1][1] = *p1;
+                    buffer[1][bufferSize-1] = *(p1+w-1);
+                    buffer[1][bufferSize-2] = *(p1+w-1);
+                    for (i = 2; i < restLen; i++) {
+                        buffer[1][i] = *p1++;
+                    }
+                } else {
+                    buffer[2][0] = *p1;
+                    buffer[2][1] = *p1;
+                    buffer[2][bufferSize-1] = *(p1+w-1);
+                    buffer[2][bufferSize-2] = *(p1+w-1);
+                    for (i = 2; i < restLen; i++) {
+                        buffer[2][i] = *p1++;
+                    }
+                }
+
+                // Check if serpentine is on
+                if(serpentine) {
+                    // if serpentine is on and it's even row we scan the row from right to left
+                    // Even row number
+                    if (y%2 == 0) {
+                        // Move output pointer to the last element of the row
+                        p2 = p2 + w - 1;
+                        if(y == 2) {
+                            in[0] = buffer[0] + bufferSize - 3;
+                            in[1] = buffer[1] + bufferSize - 3;
+                            in[2] = buffer[2] + bufferSize - 3;
+                        } else if (y%3 == 0) {
+                            in[0] = buffer[1] + bufferSize - 3;
+                            in[1] = buffer[2] + bufferSize - 3;
+                            in[2] = buffer[0] + bufferSize - 3;
+                        } else if(y%3 == 1) {
+                            in[0] = buffer[2] + bufferSize - 3;
+                            in[1] = buffer[0] + bufferSize - 3;
+                            in[2] = buffer[1] + bufferSize - 3;
+                        } else {
+                            in[0] = buffer[0] + bufferSize - 3;
+                            in[1] = buffer[1] + bufferSize - 3;
+                            in[2] = buffer[2] + bufferSize - 3;
+                        }
+                        for (x = 0; x < w; x++) {
+                            *p2 = (*in[0] < thr)? 0 : 255;
+                            error = *in[0] - *p2;
+                            *(in[0]-1) += (error * 7/48);
+                            *(in[0]-2) += (error * 5/48);
+                            *(in[1]+1) += (error * 5/48);
+                            *(in[1]+2) += (error * 3/48);
+                            *(in[1]-1) += (error * 5/48);
+                            *(in[1]-2) += (error * 3/48);
+                            *(in[2]+1) += (error * 3/48);
+                            *(in[2]+2) += (error * 1/48);
+                            *(in[2]-1) += (error * 3/48);
+                            *(in[2]-2) += (error * 1/48);
+                            in[0]--;
+                            in[1]--;
+                            in[2]--;
+                            p2--;
+                        }
+                        // Move output pointer to the first element of next row
+                        p2 = p2 + w + 1;
+
+                    // otherwise we scan the row from left to right
+                    // Odd row number
+                    } else {
+                        if(y == 2) {
+                            in[0] = buffer[0] + 2;
+                            in[1] = buffer[1] + 2;
+                            in[2] = buffer[2] + 2;
+                        } else if (y%3 == 0) {
+                            in[0] = buffer[1] + 2;
+                            in[1] = buffer[2] + 2;
+                            in[2] = buffer[0] + 2;
+                        } else if(y%3 == 1) {
+                            in[0] = buffer[2] + 2;
+                            in[1] = buffer[0] + 2;
+                            in[2] = buffer[1] + 2;
+                        } else {
+                            in[0] = buffer[0] + 2;
+                            in[1] = buffer[1] + 2;
+                            in[2] = buffer[2] + 2;
+                        }
+                        for (x = 0; x < w; x++) {
+                            *p2 = (*in[0] < thr)? 0 : 255;
+                            error = *in[0] - *p2;
+                            *(in[0]+1) += (error * 7/48);
+                            *(in[0]+2) += (error * 5/48);
+                            *(in[1]+1) += (error * 5/48);
+                            *(in[1]+2) += (error * 3/48);
+                            *(in[1]-1) += (error * 5/48);
+                            *(in[1]-2) += (error * 3/48);
+                            *(in[2]+1) += (error * 3/48);
+                            *(in[2]+2) += (error * 1/48);
+                            *(in[2]-1) += (error * 3/48);
+                            *(in[2]-2) += (error * 1/48);
+                            in[0]++;
+                            in[1]++;
+                            in[2]++;
+                            p2++;
+                        }
+                    }
+                // When serpentine is off
+                } else {
+                    if(y == 2) {
+                        in[0] = buffer[0] + 2;
+                        in[1] = buffer[1] + 2;
+                        in[2] = buffer[2] + 2;
+                    } else if (y%3 == 0) {
+                        in[0] = buffer[1] + 2;
+                        in[1] = buffer[2] + 2;
+                        in[2] = buffer[0] + 2;
+                    } else if(y%3 == 1) {
+                        in[0] = buffer[2] + 2;
+                        in[1] = buffer[0] + 2;
+                        in[2] = buffer[1] + 2;
+                    } else {
+                        in[0] = buffer[0] + 2;
+                        in[1] = buffer[1] + 2;
+                        in[2] = buffer[2] + 2;
+                    }
+                    for (x = 0; x < w; x++) {
+                        *p2 = (*in[0] < thr)? 0 : 255;
+                        error = *in[0] - *p2;
+                        *(in[0]+1) += (error * 7/48);
+                        *(in[0]+2) += (error * 5/48);
+                        *(in[1]+1) += (error * 5/48);
+                        *(in[1]+2) += (error * 3/48);
+                        *(in[1]-1) += (error * 5/48);
+                        *(in[1]-2) += (error * 3/48);
+                        *(in[2]+1) += (error * 3/48);
+                        *(in[2]+2) += (error * 1/48);
+                        *(in[2]-1) += (error * 3/48);
+                        *(in[2]-2) += (error * 1/48);
+                        in[0]++;
+                        in[1]++;
+                        in[2]++;
+                        p2++;
+                    }
+                }
+            }
+        }
+        for(int i = 0; i < 3; i++) {
+            delete[] buffer[i];
+        }
+        delete[] buffer;
     } else {
         for(int ch = 0; IP_getChannel(tempImage, ch, p1, type); ch++) {
             IP_getChannel(I2, ch, p2, type);
