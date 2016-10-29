@@ -19,7 +19,7 @@ HW_blur(ImagePtr I1, int filterW, int filterH, ImagePtr I2)
     int w = I1->width();
     int h = I1->height();
     int total = w * h;
-    int type, y, x, ch, k;
+    int type, ch;
 
     ChannelPtr<uchar> p1, p2, endd, tempOut;
 
