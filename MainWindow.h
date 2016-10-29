@@ -22,6 +22,7 @@
 #include <cstdlib>
 #include <cstdarg>
 #include <cassert>
+#include <ctime>
 #include <vector>
 #include <map>
 #include <algorithm>
@@ -77,8 +78,12 @@ protected:
 
 
 private:
+	// menus
 	QMenu*			m_menuFile;
 	QMenu*			m_menuPtOps;
+	QMenu*			m_menuNbrOps;
+
+	// point ops actions
 	QAction*		m_actionOpen;
 	QAction*		m_actionSave;
 	QAction*		m_actionQuit;
@@ -90,6 +95,15 @@ private:
 	QAction*		m_actionHistoStretch;
 	QAction*		m_actionHistoMatch  ;
 
+	// neighborhood ops actions
+	QAction*		m_actionErrDiffusion;
+	QAction*		m_actionBlur	    ;
+	QAction*		m_actionSharpen	    ;
+	QAction*		m_actionMedian	    ;
+#ifdef GG
+	QAction*		m_actionConvolve    ;
+#endif
+
 	// homework objects
 	ImageFilter*		m_imageFilter[MAXFILTERS];
 
@@ -98,7 +112,7 @@ private:
 	QStackedWidget*		m_stackWidgetPanels;	// stacked widget for control panels
 
 	// widgets for image display groupbox
-	QStackedWidget*		m_stackWidgetImages;	// stacked widget for input/output images
+	QLabel*			m_labelImages;		// label widget for input/output images
 	QRadioButton*		m_radioDisplay[2];	// radio buttons for input/output
 	QRadioButton*		m_radioMode   [2];	// radio buttons for RGB/Gray modes
 	QCheckBox*		m_checkboxHisto;	// checkbox: histogram display

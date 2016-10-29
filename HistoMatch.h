@@ -27,9 +27,9 @@ protected slots:
 
 private:
 	// widgets
-	QSlider		*m_slider ;	// HistoMatch slider
-	QSpinBox	*m_spinBox;	// HistoMatch spin box
-	QGroupBox	*m_ctrlGrp;	// groupbox for panel
+	QSlider*	m_slider ;	// HistoMatch slider
+	QSpinBox*	m_spinBox;	// HistoMatch spin box
+	QGroupBox*	m_ctrlGrp;	// groupbox for panel
 
 	// lookup table
 	ImagePtr	 m_lut;		// target histogram

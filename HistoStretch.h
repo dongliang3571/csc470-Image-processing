@@ -30,11 +30,11 @@ protected slots:
 
 private:
 	// widgets
-	QSlider		*m_slider [2];	// HistoStretch sliders
-	QSpinBox	*m_spinBox[2];	// HistoStretch spin boxes
-	QCheckBox	*m_thr1;	// min histogram threshold control
-	QCheckBox	*m_thr2;	// max histogram threshold control
-	QGroupBox	*m_ctrlGrp;	// groupbox for panel
+	QSlider*	m_slider [2];	// HistoStretch sliders
+	QSpinBox*	m_spinBox[2];	// HistoStretch spin boxes
+	QCheckBox*	m_thr1;		// min histogram threshold control
+	QCheckBox*	m_thr2;		// max histogram threshold control
+	QGroupBox*	m_ctrlGrp;	// groupbox for panel
 
 	// state variables
 	int		 m_thrFlag1;	// flag for finding min histogram value

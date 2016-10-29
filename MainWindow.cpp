@@ -16,10 +16,18 @@
 #include "Contrast.h"
 #include "HistoStretch.h"
 #include "HistoMatch.h"
+#include "ErrDiffusion.h"
+#include "Blur.h"
+#include "Sharpen.h"
+#include "Median.h"
+#ifdef GG
+#include "Convolve.h"
+#endif
 
 using namespace IP;
 
-enum {DUMMY, THRESHOLD, CLIP, QUANTIZE, GAMMA, CONTRAST, HISTOSTRETCH, HISTOMATCH};
+enum {DUMMY, THRESHOLD, CLIP, QUANTIZE, GAMMA, CONTRAST, HISTOSTRETCH, HISTOMATCH,
+      ERRDIFFUSION, BLUR, SHARPEN, MEDIAN, CONVOLVE};
 enum {RGB, R, G, B, GRAY};
 
 QString GroupBoxStyle = "QGroupBox {				\
@@ -100,13 +108,39 @@ MainWindow::createActions()
 	m_actionContrast->setShortcut(tr("Ctrl+N"));
 	m_actionContrast->setData(CONTRAST);
 
-	m_actionHistoStretch = new QAction("Histogram &Stretch", this);
-	m_actionHistoStretch->setShortcut(tr("Ctrl+S"));
+	m_actionHistoStretch = new QAction("&Histogram Stretch", this);
+	m_actionHistoStretch->setShortcut(tr("Ctrl+H"));
 	m_actionHistoStretch->setData(HISTOSTRETCH);
 
 	m_actionHistoMatch = new QAction("Histogram &Match", this);
 	m_actionHistoMatch->setShortcut(tr("Ctrl+M"));
 	m_actionHistoMatch->setData(HISTOMATCH);
+
+	//////////////////////////////
+	// Neighborhood Ops Actions
+	//////////////////////////////
+
+	m_actionErrDiffusion = new QAction("&Error Diffusion", this);
+	m_actionErrDiffusion->setShortcut(tr("Ctrl+E"));
+	m_actionErrDiffusion->setData(ERRDIFFUSION);
+
+	m_actionBlur = new QAction("&Blur", this);
+	m_actionBlur->setShortcut(tr("Ctrl+B"));
+	m_actionBlur->setData(BLUR);
+
+	m_actionSharpen = new QAction("&Sharpen", this);
+	m_actionSharpen->setShortcut(tr("Ctrl+S"));
+	m_actionSharpen->setData(SHARPEN);
+
+	m_actionMedian = new QAction("Me&dian", this);
+	m_actionMedian->setShortcut(tr("Ctrl+D"));
+	m_actionMedian->setData(MEDIAN);
+
+#ifdef GG
+	m_actionConvolve = new QAction("Con&volve", this);
+	m_actionConvolve->setShortcut(tr("Ctrl+V"));
+	m_actionConvolve->setData(CONVOLVE);
+#endif
 
 	// one signal-slot connection for all actions;
 	// execute() will resolve which action was triggered
@@ -139,8 +173,19 @@ MainWindow::createMenus()
 	m_menuPtOps->addAction(m_actionHistoStretch);
 	m_menuPtOps->addAction(m_actionHistoMatch  );
 
+	// Neighborhood Ops menu
+	m_menuNbrOps = menuBar()->addMenu("&Neighborhood Ops");
+	m_menuNbrOps->addAction(m_actionErrDiffusion);
+	m_menuNbrOps->addAction(m_actionBlur	   );
+	m_menuNbrOps->addAction(m_actionSharpen	   );
+	m_menuNbrOps->addAction(m_actionMedian	   );
+#ifdef GG
+	m_menuNbrOps->addAction(m_actionConvolve   );
+#endif
+
 	// disable the following menus until input image is read
-	m_menuPtOps->setEnabled(false);
+	m_menuPtOps ->setEnabled(false);
+	m_menuNbrOps->setEnabled(false);
 }
 
 
@@ -190,19 +235,33 @@ MainWindow::createGroupPanel()
 	m_imageFilter[CONTRAST	] = new Contrast;
 	m_imageFilter[HISTOSTRETCH]=new HistoStretch;
 	m_imageFilter[HISTOMATCH] = new HistoMatch;
+	m_imageFilter[ERRDIFFUSION]=new ErrDiffusion;
+	m_imageFilter[BLUR	] = new Blur;
+	m_imageFilter[SHARPEN	] = new Sharpen;
+	m_imageFilter[MEDIAN	] = new Median;
+#ifdef GG
+	m_imageFilter[CONVOLVE	] = new Convolve;
+#endif
 
 	// create a stacked widget to hold multiple control panels
 	m_stackWidgetPanels = new QStackedWidget;
 
 	// add filter control panels to stacked widget
-	m_stackWidgetPanels->addWidget(m_imageFilter[DUMMY       ]->controlPanel());
-	m_stackWidgetPanels->addWidget(m_imageFilter[THRESHOLD   ]->controlPanel());
-	m_stackWidgetPanels->addWidget(m_imageFilter[CLIP        ]->controlPanel());
-	m_stackWidgetPanels->addWidget(m_imageFilter[QUANTIZE    ]->controlPanel());
-	m_stackWidgetPanels->addWidget(m_imageFilter[GAMMA       ]->controlPanel());
-	m_stackWidgetPanels->addWidget(m_imageFilter[CONTRAST    ]->controlPanel());
+	m_stackWidgetPanels->addWidget(m_imageFilter[DUMMY	 ]->controlPanel());
+	m_stackWidgetPanels->addWidget(m_imageFilter[THRESHOLD	 ]->controlPanel());
+	m_stackWidgetPanels->addWidget(m_imageFilter[CLIP	 ]->controlPanel());
+	m_stackWidgetPanels->addWidget(m_imageFilter[QUANTIZE	 ]->controlPanel());
+	m_stackWidgetPanels->addWidget(m_imageFilter[GAMMA	 ]->controlPanel());
+	m_stackWidgetPanels->addWidget(m_imageFilter[CONTRAST	 ]->controlPanel());
 	m_stackWidgetPanels->addWidget(m_imageFilter[HISTOSTRETCH]->controlPanel());
-	m_stackWidgetPanels->addWidget(m_imageFilter[HISTOMATCH  ]->controlPanel());
+	m_stackWidgetPanels->addWidget(m_imageFilter[HISTOMATCH	 ]->controlPanel());
+	m_stackWidgetPanels->addWidget(m_imageFilter[ERRDIFFUSION]->controlPanel());
+	m_stackWidgetPanels->addWidget(m_imageFilter[BLUR	 ]->controlPanel());
+	m_stackWidgetPanels->addWidget(m_imageFilter[SHARPEN	 ]->controlPanel());
+	m_stackWidgetPanels->addWidget(m_imageFilter[MEDIAN	 ]->controlPanel());
+#ifdef GG
+	m_stackWidgetPanels->addWidget(m_imageFilter[CONVOLVE	 ]->controlPanel());
+#endif
 
 	// display blank dummmy panel initially
 	m_stackWidgetPanels->setCurrentIndex(DUMMY);
@@ -216,22 +275,22 @@ MainWindow::createGroupPanel()
 	// init timing label
 	m_labelTime = new QLabel;
 
-    // create histogram plot
-    m_histogram = new QCustomPlot;
-    
-    // set histogram title
-    m_histogram->plotLayout()->insertRow(0);
-    m_histogram->plotLayout()->addElement(0, 0, new QCPPlotTitle(m_histogram,"Histogram"));
-    
-    // assign label axes
-    m_histogram->xAxis->setLabel("Intensity");
-    m_histogram->yAxis->setLabel("Frequency");
-    m_histogram->xAxis->setAutoTickStep(0);
-    m_histogram->xAxis->setTickStep(32.);
-    
-    // set axes ranges, so we see all the data
-    m_histogram->xAxis->setRange(0, MXGRAY);
-    m_histogram->yAxis->setRange(0, MXGRAY);
+        // create histogram plot
+        m_histogram = new QCustomPlot;
+
+	// set histogram title
+        m_histogram->plotLayout()->insertRow(0);
+        m_histogram->plotLayout()->addElement(0, 0, new QCPPlotTitle(m_histogram,"Histogram"));
+
+        // assign label axes
+        m_histogram->xAxis->setLabel("Intensity");
+        m_histogram->yAxis->setLabel("Frequency");
+        m_histogram->xAxis->setAutoTickStep(0);
+        m_histogram->xAxis->setTickStep(32.);
+
+        // set axes ranges, so we see all the data
+        m_histogram->xAxis->setRange(0, MXGRAY);
+        m_histogram->yAxis->setRange(0, MXGRAY);
 	m_histogram->setMinimumHeight(400);
 	m_histogram->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
 	m_histogram->axisRect()->setupFullAxesBox();
@@ -289,24 +348,15 @@ MainWindow::createGroupDisplay()
 	groupBox->setMinimumHeight(700);
 	groupBox->setStyleSheet(GroupBoxStyle);
 
-	// create stacked widget for input/output images
-	m_stackWidgetImages = new QStackedWidget;
+	// create label widget for input/output images
+	m_labelImages = new QLabel;
 
-	// add QLabels to image stacked widget to display input/output images
-	for(int i = 0; i<2; ++i)
-		m_stackWidgetImages->addWidget(new QLabel);
-
-	// add centering alignment on both labels
-	QLabel *label;
-	label = (QLabel *) m_stackWidgetImages->widget(0); label->setAlignment(Qt::AlignCenter);
-	label = (QLabel *) m_stackWidgetImages->widget(1); label->setAlignment(Qt::AlignCenter);
-
-	// set stacked widget to default setting: input image
-	m_stackWidgetImages->setCurrentIndex(0);
+	// add centering alignment on label
+	m_labelImages->setAlignment(Qt::AlignCenter);
 
 	// assemble stacked widget in vertical layout
 	QVBoxLayout *vbox = new QVBoxLayout;
-	vbox->addWidget(m_stackWidgetImages);
+	vbox->addWidget(m_labelImages);
 	groupBox->setLayout(vbox);
 
 	return groupBox;
@@ -512,7 +562,7 @@ MainWindow::time()
 	dt *= (1000. / CLOCKS_PER_SEC);
 
 	// print result
-	m_labelTime->setText(QString("Execution time (ms): %2").arg(dt));
+	m_labelTime->setText(QString("Execution time (ms): %1").arg(dt));
 }
 
 
@@ -565,6 +615,7 @@ MainWindow::open() {
 
 	// enable the following now that input image is read
 	m_menuPtOps	->setEnabled(true);
+	m_menuNbrOps	->setEnabled(true);
 	m_groupBoxPanels->setEnabled(true);
 }
 
@@ -619,9 +670,6 @@ void MainWindow::display(int flag)
 	if(m_imageSrc.isNull())		return;		// no input  image
 	if(m_imageDst.isNull() && flag) return;		// no output image
 
-	// raise the appropriate widget from the stack
-	m_stackWidgetImages->setCurrentIndex(flag);
-
 	// set radio button
 	m_radioDisplay[flag]->setChecked(1);
 
@@ -636,8 +684,8 @@ void MainWindow::display(int flag)
 	int  h = I->height();
 
 	// init view window dimensions
-	int ww = m_stackWidgetImages->width();
-	int hh = m_stackWidgetImages->height();
+	int ww = m_labelImages->width();
+	int hh = m_labelImages->height();
 
 	// convert from ImagePtr to QImage to Pixmap
 	QImage q;
@@ -650,8 +698,7 @@ void MainWindow::display(int flag)
 	else	p = QPixmap::fromImage(q);
 
 	// assign pixmap to label widget for display
-	QLabel *widget = (QLabel *) m_stackWidgetImages->currentWidget();
-	widget->setPixmap(p);
+	m_labelImages->setPixmap(p);
 
 	// compute average runtime if time checkbox is set
 	time();

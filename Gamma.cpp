@@ -156,10 +156,10 @@ void
 Gamma::reset()
 {
 	m_slider ->blockSignals(true);
-	m_slider ->setValue    (1);
+	m_slider ->setValue    (10);
 	m_slider ->blockSignals(false);
 	m_spinBox->blockSignals(true);
-	m_spinBox->setValue    (1);
+	m_spinBox->setValue    (10);
 	m_spinBox->blockSignals(false);
 
 	// apply filter and display output

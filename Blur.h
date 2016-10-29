@@ -2,38 +2,37 @@
 // IMPROC: Image Processing Software Package
 // Copyright (C) 2016 by George Wolberg
 //
-// Contrast.h - Contrast widget
+// Blur.h - Blur widget
 //
 // Written by: George Wolberg, 2016
 // ======================================================================
 
-#ifndef CONTRAST_H
-#define CONTRAST_H
+#ifndef BLUR_H
+#define BLUR_H
 
 #include "ImageFilter.h"
 
-class Contrast : public ImageFilter {
+class Blur : public ImageFilter {
 	Q_OBJECT
 
 public:
-	Contrast			(QWidget *parent = 0);	// constructor
+	Blur				(QWidget *parent = 0);	// constructor
 	QGroupBox*	controlPanel	();			// create control panel
 	bool		applyFilter	(ImagePtr, ImagePtr);	// apply filter to input
 	void		reset		();			// reset parameters
-	void		contrast	(ImagePtr, double, double, ImagePtr);
+	void		blur		(ImagePtr, int, int, ImagePtr);
 
 protected slots:
-	void changeBrightnessI(int);
-	void changeContrastI  (int);
-
-	void changeBrightnessD(double);
-	void changeContrastD  (double);
+	void		changeFilterW	(int);
+	void		changeFilterH	(int);
+	void		setLock		(int);
 
 private:
 	// widgets
-	QSlider*	m_slider [2];	// brightness/contrast sliders
-	QDoubleSpinBox*	m_spinBox[2];	// brightness/contrast spin boxes
+	QSlider*	m_slider [2];	// Blur sliders
+	QSpinBox*	m_spinBox[2];	// Blur spin boxes
+	QCheckBox*	m_checkBox;	// Blur check box
 	QGroupBox*	m_ctrlGrp;	// groupbox for panel
 };
 
-#endif	// CONTRAST_H
+#endif	// BLUR_H
