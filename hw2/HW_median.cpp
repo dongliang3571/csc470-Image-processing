@@ -25,7 +25,7 @@ HW_median(ImagePtr I1, int sz, ImagePtr I2)
     short** tempForBuffer;
     ChannelPtr<uchar> p1, p2, endd, tempOut;
 
-
+    // When kernel size is one, copy input to output directly
     if (sz == 1) {
         for(int ch = 0; IP_getChannel(I1, ch, p1, type); ch++) {
             IP_getChannel(I2, ch, p2, type);
@@ -46,6 +46,7 @@ HW_median(ImagePtr I1, int sz, ImagePtr I2)
     newList = new short[filterSize];
     tempFornewList = newList;
 
+    // initializing buffer
     for(k = 0; k < kernel; k++) {
         buffer[k] = new short[bufferSize];
         tempForBuffer[k] = buffer[k];
@@ -55,12 +56,12 @@ HW_median(ImagePtr I1, int sz, ImagePtr I2)
         IP_getChannel(I2, ch, p2, type);
         tempOut = p1;
 
-        //copy first row to buffer
+        //copy first row to firstRowbuffer
         for (k = 0; k < w; k++) {
             firstRowBuffer[k] = p1[k];
         }
 
-        //copy first row to buffer
+        //copy last row to lastRowbuffer
         int lastrow = (h-1)*w;
         for (k = 0; k < w; k++) {
             lastRowBuffer[k] = p1[k+lastrow];
@@ -81,7 +82,8 @@ HW_median(ImagePtr I1, int sz, ImagePtr I2)
             }
 
             int extraTopIndex = w + neighborSize;
-            // create buffer for rows out of boundary
+
+            // create buffer for upper rows out of boundary
             for (i = 0; i < extraTopRow; i++) {
                 for (j = 0; j < neighborSize; j++) {
                     buffer[i][j] = firstRowBuffer[0];
@@ -94,6 +96,7 @@ HW_median(ImagePtr I1, int sz, ImagePtr I2)
                 }
             }
 
+            // create buffer for all rows higher than middle row but inside boundary
             for (i = 0; i < neighborSize-extraTopRow; i++) {
                 for (j = 0; j < neighborSize; j++) {
                     buffer[i+extraTopRow][j] = *(tempOut-(i+1)*w);
@@ -106,6 +109,7 @@ HW_median(ImagePtr I1, int sz, ImagePtr I2)
                 }
             }
 
+            // create buffer for middle row
             for (i = 0; i < 1; i++) {
                 for (j = 0; j < neighborSize; j++) {
                     buffer[i+neighborSize][j] = *(tempOut);
@@ -118,6 +122,7 @@ HW_median(ImagePtr I1, int sz, ImagePtr I2)
                 }
             }
 
+            // create buffer for all rows lower than middle row but inside boundary
             for (i = 0; i < neighborSize-extraBottomRow; i++) {
                 for (j = 0; j < neighborSize; j++) {
                     buffer[i+neighborSize+1][j] = *(tempOut+(i+1)*w);
@@ -130,6 +135,7 @@ HW_median(ImagePtr I1, int sz, ImagePtr I2)
                 }
             }
 
+            // create buffer for lower rows out of boundary
             int extraBottomIndex = kernel - extraBottomRow;
             for (i = 0; i < extraBottomRow; i++) {
                 for (j = 0; j < neighborSize; j++) {
@@ -142,16 +148,21 @@ HW_median(ImagePtr I1, int sz, ImagePtr I2)
                     buffer[i+extraBottomIndex][l+extraTopIndex] = lastRowBuffer[lastElement];
                 }
             }
+            tempOut += w;
             // Finish first round of copying rows to buffer
 
-            tempOut += w;
+            // Collect all pixels inside kernel
             for (x = 0; x < w; x++) {
                 for (i = 0; i < kernel; i++) {
                     for (j = 0; j < kernel; j++) {
                         *newList++ = tempForBuffer[i][j+x];
                     }
                 }
+
+                // Move newList pointer back to begining so that next look can use it
                 newList -= filterSize;
+
+                // Take median
                 std::sort(tempFornewList, tempFornewList+filterSize);
                 *p2 = tempFornewList[halfFilterSize];
                 p2++;
