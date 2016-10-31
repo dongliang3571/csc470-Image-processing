@@ -12,6 +12,7 @@ void
 HW_blur(ImagePtr I1, int filterW, int filterH, ImagePtr I2)
 {
     //create a temporary image and copy header from input image
+
     ImagePtr tempImage;
     IP_copyImageHeader(I1, I2);
     IP_copyImageHeader(I1, tempImage);
@@ -20,8 +21,10 @@ HW_blur(ImagePtr I1, int filterW, int filterH, ImagePtr I2)
     int h = I1->height();
     int total = w * h;
     int type, ch;
-
     ChannelPtr<uchar> p1, p2, endd, tempOut;
+
+    if (filterW%2 == 0) filterW++;
+    if (filterH%2 == 0) filterH++;
 
     if (filterW == 1 && filterH == 1) {
         for(int ch = 0; IP_getChannel(I1, ch, p1, type); ch++) {
@@ -30,7 +33,6 @@ HW_blur(ImagePtr I1, int filterW, int filterH, ImagePtr I2)
         }
         return;
     }
-
 
     // blurring the rows
     for(ch = 0; IP_getChannel(I1, ch, p1, type); ch++) {
@@ -84,8 +86,7 @@ blur1D(ChannelPtr<uchar> src, int len, int stride, int ww, ChannelPtr<uchar> dst
             }
 
             in = buffer;
-
-            //added up first xsz pixel in buffer
+            //added up first ww pixel in buffer
             for (k = 0; k < ww; k++) {
                 sum += in[k];
             }
@@ -131,6 +132,5 @@ blur1D(ChannelPtr<uchar> src, int len, int stride, int ww, ChannelPtr<uchar> dst
             src++;
         }
     }
-
     delete[] buffer;
 }

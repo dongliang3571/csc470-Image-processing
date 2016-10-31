@@ -25,6 +25,8 @@ HW_median(ImagePtr I1, int sz, ImagePtr I2)
     short** tempForBuffer;
     ChannelPtr<uchar> p1, p2, endd, tempOut;
 
+    if (sz%2 == 0) sz++;
+
     // When kernel size is one, copy input to output directly
     if (sz == 1) {
         for(int ch = 0; IP_getChannel(I1, ch, p1, type); ch++) {

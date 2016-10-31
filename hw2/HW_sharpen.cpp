@@ -20,6 +20,8 @@ HW_sharpen(ImagePtr I1, int size, double factor, ImagePtr I2)
     int type, ch;
     ChannelPtr<uchar> p1, p2, endd, tempOut;
 
+    if (size%2 == 0) size++;
+    
     if (size == 1) {
         for(int ch = 0; IP_getChannel(I1, ch, p1, type); ch++) {
             IP_getChannel(I2, ch, p2, type);
