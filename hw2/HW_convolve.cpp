@@ -13,8 +13,8 @@ HW_convolve(ImagePtr I1, ImagePtr Ikernel, ImagePtr I2)
     int type, y, x, ch, k, i, j, l;
     short* firstRowBuffer;
     short* lastRowBuffer;
-    short* newList;
-    short* tempFornewList;
+    float* newList;
+    float* tempFornewList;
     short** tempForBuffer;
     ChannelPtr<uchar> p1, p2, endd, tempOut;
 
@@ -41,7 +41,7 @@ HW_convolve(ImagePtr I1, ImagePtr Ikernel, ImagePtr I2)
     tempForBuffer = buffer;
     firstRowBuffer = new short[w];
     lastRowBuffer = new short[w];
-    newList = new short[filterSize];
+    newList = new float[filterSize];
     tempFornewList = newList;
 
     // initializing buffer
@@ -155,7 +155,7 @@ HW_convolve(ImagePtr I1, ImagePtr Ikernel, ImagePtr I2)
             for (x = 0; x < w; x++) {
                 for (i = 0; i < kernel; i++) {
                     for (j = 0; j < kernel; j++) {
-                        *newList++ = tempForBuffer[i][j+x] * (*kernelPtr++);
+                        *newList++ = (float)tempForBuffer[i][j+x] * (*kernelPtr++);
                     }
                 }
 
@@ -164,11 +164,12 @@ HW_convolve(ImagePtr I1, ImagePtr Ikernel, ImagePtr I2)
                 kernelPtr -= filterSize;
 
                 // Add up all pixels inside kernel after convolution is applied
-                int newSum = 0;
+                float newSum = 0;
                 for(i = 0; i < filterSize; i++) {
                     newSum += newList[i];
                 }
-                *p2 = CLIP(newSum, 0, MaxGray);
+                *p2 = (int)CLIP(newSum, 0, MaxGray);
+                qDebug() << *p2;
                 p2++;
             }
         }

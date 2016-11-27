@@ -576,7 +576,7 @@ MainWindow::open() {
 	// invoke native file browser to select file
 	m_file = dialog.getOpenFileName(this,
 					"Open File", m_currentDir,
-					"Images (*.jpg *.png *.ppm *.pgm *.bmp);;All files (*)");
+					"Images (*.jpg *.png *.ppm *.pgm *.bmp *.jpeg);;All files (*)");
 
 	// verify that file selection was made
 	if(m_file.isNull()) return;
