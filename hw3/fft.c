@@ -9,9 +9,9 @@ typedef struct {
     float *imag;
 } complexS, *complexP;
 
-void fft(FILE *in, int dir, FILE *out);
-void _fft(complexP I1, int dir, complexP I2);
-int write_output(complexS in, FILE *out);
+void fft1D(FILE *in, int dir, FILE *out);
+void fft(complexP I1, int dir, complexP I2);
+int write_output(complexP in, FILE *out);
 
 
 int main(int argc, char *argv[]) {
@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
         // open input and output file
         in = fopen(in_name, "r");
         out = fopen(out_name, "w");
-        fft(in, dir, out);
+        fft1D(in, dir, out);
         return 0;
     } else {
         printf("Expected 3 argument\n");
@@ -40,15 +40,18 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-void fft(FILE *in, int dir, FILE *out) {
+void fft1D(FILE *in, int dir, FILE *out) {
     // get width and height
     int width, height;
     fscanf(in, "%d %d", &width, &height);
 
     int n, k, N = height, done;
     float c, s, real, imag;
-    complexP I1, I2;
-    I1->len = height;
+
+    complexP I1 = malloc(sizeof(*I1));
+    complexP I2 = malloc(sizeof(*I2));
+
+    I1->len = N;
     I1->real = malloc(sizeof(float)*N);
     I1->imag = malloc(sizeof(float)*N);
 
@@ -57,12 +60,18 @@ void fft(FILE *in, int dir, FILE *out) {
     I2->imag = malloc(sizeof(float)*N);
 
     for (int i = 0; i < N; i++) {
-        fscanf(in, "%f %f", &I1->real[i], &I2->imag[i]);
+        fscanf(in, "%f %f", &I1->real[i], &I1->imag[i]);
     }
 
     // do FFT
-    _fft(I1, dir, I2);
-    // write_output(*I2, out);
+    fft(I1, dir, I2);
+    if(!dir) {
+        for(int i = 0; i < N; i++) {
+            I2->real[i] /= N;
+            I2->imag[i] /= N;
+        }
+    }
+    write_output(I2, out);
 
     // Free memory
     free(I1->real);
@@ -73,14 +82,14 @@ void fft(FILE *in, int dir, FILE *out) {
 }
 
 
-int write_output(complexS in, FILE *out) {
-    int done = fprintf(out, "%d %d\n", 2, in.len);
+int write_output(complexP in, FILE *out) {
+    int done = fprintf(out, "%d %d\n", 2, in->len);
     if(done < 0) {
         return done;
     }
 
-    for(int i = 0; i < in.len; i++) {
-        done = fprintf(out, "%f %f\n", in.real[i], in.imag[i]);
+    for(int i = 0; i < in->len; i++) {
+        done = fprintf(out, "%f %f\n", in->real[i], in->imag[i]);
         if(done < 0) {
             return done;
         }
@@ -88,8 +97,7 @@ int write_output(complexS in, FILE *out) {
     return 1;
 }
 
-void _fft(complexP I1, int dir, complexP I2) {
-
+void fft(complexP I1, int dir, complexP I2) {
         int i, N, N2;
         float *r1, *i1, *r2, *i2, *ra, *ia, *rb, *ib;
         double FCTR, fctr, a, b, c, s;
@@ -109,6 +117,8 @@ void _fft(complexP I1, int dir, complexP I2) {
     		r2[0] = a;
     		i2[0] = b;
     	} else {
+            Ia = malloc(sizeof(*Ia));
+            Ib = malloc(sizeof(*Ib));
     		N2 = N / 2;
             Ia->len = N2;
             Ia->real = malloc(sizeof(float)*N2);
@@ -125,18 +135,20 @@ void _fft(complexP I1, int dir, complexP I2) {
 
     		// split list into 2 halves: even and odd
     		for(i=0; i<N2; i++) {
-    			ra[i] = *r1++;		ia[i] = *i1++;
-    			rb[i] = *r1++;		ib[i] = *i1++;
+    			ra[i] = *r1++;
+                ia[i] = *i1++;
+    			rb[i] = *r1++;
+                ib[i] = *i1++;
     		}
 
     		// compute fft on both lists
-    		_fft(Ia, dir, Ia);
-    		_fft(Ib, dir, Ib);
+    		fft(Ia, dir, Ia);
+    		fft(Ib, dir, Ib);
 
     		// build up coefficients
     		if(!dir)	// forward
-    			FCTR = -PI / N;
-    		else	FCTR =  PI / N;
+    			FCTR = -PI*2 / N;
+    		else	FCTR =  PI*2 / N;
     		for(fctr=i=0; i<N2; i++, fctr+=FCTR) {
     			c = cos(fctr);
     			s = sin(fctr);
@@ -152,10 +164,7 @@ void _fft(complexP I1, int dir, complexP I2) {
             free(Ia->imag);
             free(Ib->real);
             free(Ib->imag);
+            free(Ia);
+            free(Ib);
     	}
-    	// if(dir) {	// inverse: divide by log N
-        //     for(i = 0; i < N; i++) {
-        //         I2->real[i] /= 2;
-        //     }
-    	// }
 }
