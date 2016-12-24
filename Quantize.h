@@ -29,10 +29,10 @@ protected slots:
 
 private:
 	// widgets
-	QSlider		*m_slider ;	// Quantize sliders
-	QSpinBox	*m_spinBox;	// Quantize spin boxes
-	QCheckBox	*m_checkBox;	// Quantize checkbox
-	QGroupBox	*m_ctrlGrp;	// Groupbox for panel
+	QSlider*	m_slider ;	// Quantize slider
+	QSpinBox*	m_spinBox;	// Quantize spin box
+	QCheckBox*	m_checkBox;	// Quantize checkbox
+	QGroupBox*	m_ctrlGrp;	// Groupbox for panel
 };
 
 #endif	// QUANTIZE_H

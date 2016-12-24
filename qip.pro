@@ -41,6 +41,11 @@ HEADERS +=	MainWindow.h	\
 		Contrast.h	\
 		HistoStretch.h	\
 		HistoMatch.h	\
+		ErrDiffusion.h	\
+		Blur.h		\
+		Sharpen.h	\
+		Median.h	\
+        Convolve.h	\
 
 		
 SOURCES +=	main.cpp	\ 
@@ -55,4 +60,8 @@ SOURCES +=	main.cpp	\
 		Contrast.cpp	\
 		HistoStretch.cpp\
 		HistoMatch.cpp	\
-
+		ErrDiffusion.cpp\
+		Blur.cpp	\
+		Sharpen.cpp	\
+		Median.cpp	\
+        Convolve.cpp	\

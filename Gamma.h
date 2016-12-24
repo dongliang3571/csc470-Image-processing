@@ -28,9 +28,9 @@ protected slots:
 
 private:
 	// widgets
-	QSlider		*m_slider;	// gamma slider
-	QDoubleSpinBox	*m_spinBox;	// gamma spin box
-	QGroupBox	*m_ctrlGrp;	// groupbox for panel
+	QSlider*	m_slider;	// gamma slider
+	QDoubleSpinBox*	m_spinBox;	// gamma spin box
+	QGroupBox*	m_ctrlGrp;	// groupbox for panel
 };
 
 #endif	// GAMMA_H

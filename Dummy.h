@@ -29,7 +29,7 @@ public:
 
 private:
 	// widgets and groupbox
-	QGroupBox	*m_ctrlGrp;			// groupbox for panel
+	QGroupBox*	m_ctrlGrp;			// groupbox for panel
 };
 
 

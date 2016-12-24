@@ -2,38 +2,38 @@
 // IMPROC: Image Processing Software Package
 // Copyright (C) 2016 by George Wolberg
 //
-// Contrast.h - Contrast widget
+// Convolve.h - Convolve widget
 //
 // Written by: George Wolberg, 2016
 // ======================================================================
 
-#ifndef CONTRAST_H
-#define CONTRAST_H
+#ifndef CONVOLVE_H
+#define CONVOLVE_H
 
 #include "ImageFilter.h"
 
-class Contrast : public ImageFilter {
+class Convolve : public ImageFilter {
 	Q_OBJECT
 
 public:
-	Contrast			(QWidget *parent = 0);	// constructor
+	Convolve			(QWidget *parent = 0);	// constructor
 	QGroupBox*	controlPanel	();			// create control panel
 	bool		applyFilter	(ImagePtr, ImagePtr);	// apply filter to input
-	void		reset		();			// reset parameters
-	void		contrast	(ImagePtr, double, double, ImagePtr);
+	void		convolve	(ImagePtr, ImagePtr, ImagePtr);
 
 protected slots:
-	void changeBrightnessI(int);
-	void changeContrastI  (int);
-
-	void changeBrightnessD(double);
-	void changeContrastD  (double);
+	int		load		();
 
 private:
 	// widgets
-	QSlider*	m_slider [2];	// brightness/contrast sliders
-	QDoubleSpinBox*	m_spinBox[2];	// brightness/contrast spin boxes
+	QPushButton*	m_button;	// Convolve pushbutton
+	QTextEdit*	m_values;	// text field for kernel values
 	QGroupBox*	m_ctrlGrp;	// groupbox for panel
+
+	// variables
+	QString		m_file;
+	QString		m_currentDir;
+	ImagePtr	m_kernel;
 };
 
-#endif	// CONTRAST_H
+#endif	// CONVOLVE_H

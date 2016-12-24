@@ -28,9 +28,9 @@ protected slots:
 
 private:
 	// widgets
-	QSlider		*m_slider ;	// Threshold slider
-	QSpinBox	*m_spinBox;	// Threshold spinbox
-	QGroupBox	*m_ctrlGrp;	// Groupbox for panel
+	QSlider*	m_slider ;	// Threshold slider
+	QSpinBox*	m_spinBox;	// Threshold spinbox
+	QGroupBox*	m_ctrlGrp;	// Groupbox for panel
 };
 
 #endif	// THRESHOLD_H

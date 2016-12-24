@@ -28,9 +28,9 @@ protected slots:
 
 private:
 	// widgets
-	QSlider		*m_slider [2];	// clip sliders
-	QSpinBox	*m_spinBox[2];	// clip spin boxes
-	QGroupBox	*m_ctrlGrp;	// groupbox for panel
+	QSlider*	m_slider [2];	// clip sliders
+	QSpinBox*	m_spinBox[2];	// clip spin boxes
+	QGroupBox*	m_ctrlGrp;	// groupbox for panel
 };
 
 #endif	// CLIP_H

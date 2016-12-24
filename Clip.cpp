@@ -2,7 +2,7 @@
 // IMPROC: Image Processing Software Package
 // Copyright (C) 2016 by George Wolberg
 //
-// Clip.cpp - Brightness/Clip widget.
+// Clip.cpp - Clip widget.
 //
 // Written by: George Wolberg, 2016
 // ======================================================================
@@ -96,8 +96,8 @@ Clip::applyFilter(ImagePtr I1, ImagePtr I2)
 	int thr1 = m_slider[0]->value();
 	int thr2 = m_slider[1]->value();
 
-    // apply filter
-    clip(I1, thr1, thr2, I2);
+        // apply filter
+        clip(I1, thr1, thr2, I2);
 
 	return 1;
 }
@@ -128,6 +128,9 @@ Clip::clip(ImagePtr I1, int t1, int t2, ImagePtr I2)
 void
 Clip::changeThr1(int val)
 {
+	int thr2 = m_slider[1]->value();
+	if(val > thr2) val = thr2;
+
 	m_slider [0]->blockSignals(true);
 	m_slider [0]->setValue    (val );
 	m_slider [0]->blockSignals(false);
@@ -149,6 +152,9 @@ Clip::changeThr1(int val)
 void
 Clip::changeThr2(int val)
 {
+	int thr1 = m_slider[0]->value();
+	if(val < thr1) val = thr1;
+
 	m_slider [1]->blockSignals(true);
 	m_slider [1]->setValue    (val );
 	m_slider [1]->blockSignals(false);

@@ -2,38 +2,35 @@
 // IMPROC: Image Processing Software Package
 // Copyright (C) 2016 by George Wolberg
 //
-// Contrast.h - Contrast widget
+// Median.h - Median widget
 //
 // Written by: George Wolberg, 2016
 // ======================================================================
 
-#ifndef CONTRAST_H
-#define CONTRAST_H
+#ifndef MEDIAN_H
+#define MEDIAN_H
 
 #include "ImageFilter.h"
 
-class Contrast : public ImageFilter {
+class Median : public ImageFilter {
 	Q_OBJECT
 
 public:
-	Contrast			(QWidget *parent = 0);	// constructor
+	Median				(QWidget *parent = 0);	// constructor
 	QGroupBox*	controlPanel	();			// create control panel
 	bool		applyFilter	(ImagePtr, ImagePtr);	// apply filter to input
 	void		reset		();			// reset parameters
-	void		contrast	(ImagePtr, double, double, ImagePtr);
+	void		median		(ImagePtr, int, ImagePtr);
 
 protected slots:
-	void changeBrightnessI(int);
-	void changeContrastI  (int);
-
-	void changeBrightnessD(double);
-	void changeContrastD  (double);
+	void		changeSize	(int);
+	void		changeItrs	(int);
 
 private:
 	// widgets
-	QSlider*	m_slider [2];	// brightness/contrast sliders
-	QDoubleSpinBox*	m_spinBox[2];	// brightness/contrast spin boxes
+	QSlider*	m_slider [2];	// Median sliders
+	QSpinBox*	m_spinBox[2];	// Median spin boxes
 	QGroupBox*	m_ctrlGrp;	// groupbox for panel
 };
 
-#endif	// CONTRAST_H
+#endif	// MEDIAN_H

@@ -1,5 +1,9 @@
 *.zip
 Makefile
+Ioutput.txt
+output.txt
+
+
 # manually adding
 Debug
 Info.plist
